@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프레임, fps, 해상도 이해하기 – 영상 프레임 추출기</title>
+<meta name="description" content="영상 프레임, fps, 해상도의 개념과 프레임 번호가 어긋나는 이유, PNG와 JPG 선택 기준을 쉽게 설명합니다.">
+<link rel="canonical" href="https://esooklee-afk.github.io/frame-extractor/guide-fps-resolution.html">
+<meta property="og:title" content="프레임, fps, 해상도 이해하기 – 영상 프레임 추출기">
+<meta property="og:description" content="영상 프레임, fps, 해상도의 개념과 프레임 번호가 어긋나는 이유, PNG와 JPG 선택 기준을 쉽게 설명합니다.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+<header class="site">
+  <div class="wrap bar">
+    <a class="logo" href="index.html">영상 프레임 추출기</a>
+    <nav><a href="index.html">프레임 추출</a><a href="guide.html">가이드</a><a href="about.html">소개</a><a href="contact.html">문의</a></nav>
+  </div>
+</header>
+<main class="wrap">
+
+<article>
+<h1>프레임, fps, 해상도 이해하기</h1>
+<p class="meta">최종 수정 2026-10-12</p>
+<p>영상에서 이미지를 뽑을 때 자주 만나는 용어가 프레임, fps, 해상도입니다. 이 개념을 알아두면 왜 프레임 번호가 예상과 다른지, 왜 어떤 이미지는 선명하고 어떤 이미지는 흐린지 이해할 수 있습니다.</p>
+
+<h2>프레임이란?</h2>
+<p>영상은 정지 이미지를 아주 빠르게 연속해서 보여주는 것입니다. 이 한 장 한 장을 <strong>프레임</strong>이라고 부릅니다. 우리가 "영상에서 이미지 하나를 뽑는다"고 말하는 것은 이 연속된 프레임 중 한 장을 꺼내는 일입니다.</p>
+
+<h2>fps(초당 프레임 수)</h2>
+<p>fps는 1초 동안 보여주는 프레임의 수입니다. 영화는 보통 24fps, 일반적인 영상과 방송은 30fps, 게임이나 스포츠처럼 부드러움이 중요한 영상은 60fps를 많이 씁니다. 30fps 영상이라면 1초에 30장, 5초짜리 영상이면 약 150장의 프레임이 들어 있습니다. 프레임 번호는 대략 <code>시간(초) × fps</code>로 계산할 수 있습니다. 예를 들어 1.1초 지점의 30fps 영상은 33번째 프레임 근처입니다.</p>
+
+<h2>해상도</h2>
+<p>해상도는 한 프레임을 이루는 가로×세로 픽셀 수입니다. 흔히 쓰는 값은 다음과 같습니다.</p>
+<ul>
+<li>1280×720 (HD): 가벼운 영상, 웹 게시용</li>
+<li>1920×1080 (풀HD): 가장 일반적인 해상도</li>
+<li>3840×2160 (4K): 큰 화면, 인쇄, 이후 크게 확대할 때 유리</li>
+</ul>
+<p>추출한 이미지의 크기는 영상 해상도와 같습니다. 1080p 영상에서는 1920×1080 이미지가 나오고, 이를 더 크게 늘리면 흐려집니다.</p>
+
+<h2>프레임 번호가 어긋나는 이유</h2>
+<p>웹 브라우저는 영상의 정확한 프레임 번호를 직접 제공하지 않습니다. 그래서 일부 도구는 재생 중 프레임 간격을 측정해 fps를 추정하고, 이를 바탕으로 한 프레임씩 이동합니다. 영상이 <strong>가변 프레임레이트(VFR)</strong>로 만들어졌다면 프레임 간격이 일정하지 않아 오차가 생길 수 있습니다. 화면 녹화 영상이나 일부 스마트폰 영상에서 흔합니다. 이런 경우 한 번 이동했을 때 화면이 바뀌지 않거나 두 프레임을 건너뛸 수 있는데, 슬라이더나 초 단위 입력으로 위치를 조금씩 조정하면 해결됩니다.</p>
+
+<h2>PNG와 JPG, 무엇을 고를까?</h2>
+<ul>
+<li><strong>PNG</strong>: 무손실 형식이라 저장할 때 화질이 깎이지 않고, 글자·선·그래픽이 많은 이미지에서 특히 깔끔합니다. 대신 파일 용량이 큽니다.</li>
+<li><strong>JPG</strong>: 손실 압축이라 용량이 훨씬 작지만, 저장할 때마다 약간의 화질 저하가 있고 글자 주변에 번짐이 생길 수 있습니다.</li>
+</ul>
+<p>편집을 이어서 할 이미지라면 PNG로 보관하고, 최종 게시용으로 용량을 줄여야 할 때만 JPG로 변환하는 방식이 안전합니다.</p>
+
+<h2>영상 압축 때문에 생기는 화질 차이</h2>
+<p>영상은 용량을 줄이기 위해 압축되어 있어서, 프레임에 따라 선명도가 조금씩 다릅니다. 압축 방식상 일정 간격으로 나오는 기준 프레임은 선명하고 그 사이 프레임은 상대적으로 덜 선명할 수 있습니다. 이미지가 흐릿하게 느껴진다면 앞뒤 몇 프레임을 이동하며 비교해 보세요. 가장 선명한 프레임을 고르는 것만으로도 결과가 달라집니다.</p>
+<p><a class="btn" href="index.html">프레임 추출기 바로 쓰기</a></p>
+</article>
+
+</main>
+<footer class="site">
+  <div class="wrap">
+    <p><a href="about.html">소개</a> · <a href="contact.html">문의</a> · <a href="privacy.html">개인정보처리방침</a> · <a href="terms.html">이용약관</a></p>
+    <p class="small">© 2026 영상 프레임 추출기. 영상은 서버로 업로드되지 않고 사용자의 브라우저에서만 처리됩니다.</p>
+  </div>
+</footer>
+
+</body>
+</html>

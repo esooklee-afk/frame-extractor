@@ -3,102 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>영상 프레임 추출기</title>
-<style>
-  body{font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;max-width:900px;margin:0 auto;padding:24px 16px;background:#fafafa;color:#222}
-  h1{font-size:20px}
-  #drop{border:2px dashed #aaa;border-radius:12px;padding:32px;text-align:center;cursor:pointer;background:#fff}
-  #drop.over{border-color:#7d2ae8;background:#f5eeff}
-  video{width:100%;max-height:60vh;background:#000;border-radius:8px;margin-top:16px;display:none}
-  #ctrl{display:none;margin-top:12px}
-  input[type=range]{width:100%}
-  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
-  button{padding:8px 14px;border:1px solid #ccc;border-radius:8px;background:#fff;cursor:pointer;font-size:14px}
-  button.primary{background:#7d2ae8;color:#fff;border-color:#7d2ae8}
-  #info{font-variant-numeric:tabular-nums;color:#555;font-size:14px}
-  input[type=number]{width:90px;padding:6px}
-</style>
+<title>영상 프레임 추출기 – 영상 속 장면을 PNG 이미지로 저장</title>
+<meta name="description" content="영상에서 원하는 프레임을 골라 원본 해상도 PNG로 저장하는 무료 온라인 도구. 업로드 없이 브라우저에서 처리됩니다.">
+<link rel="canonical" href="https://esooklee-afk.github.io/frame-extractor/">
+<meta property="og:title" content="영상 프레임 추출기 – 영상 속 장면을 PNG 이미지로 저장">
+<meta property="og:description" content="영상에서 원하는 프레임을 골라 원본 해상도 PNG로 저장하는 무료 온라인 도구. 업로드 없이 브라우저에서 처리됩니다.">
+<meta property="og:type" content="website">
+<link rel="stylesheet" href="style.css">
+
 </head>
 <body>
-<h1>영상 프레임 → PNG</h1>
-<div id="drop">MP4 영상을 여기에 끌어놓거나 클릭해서 선택<input id="file" type="file" accept="video/*" hidden></div>
-<video id="v" controls muted playsinline></video>
-<div id="ctrl">
-  <input id="seek" type="range" min="0" value="0" step="any">
-  <div class="row">
-    <button id="back">◀ 이전 프레임</button>
-    <button id="fwd">다음 프레임 ▶</button>
-    <label>이동(초) <input id="t" type="number" min="0" step="0.01"></label>
-    <button id="go">이동</button>
-    <button id="save" class="primary">현재 프레임 PNG 저장</button>
+<header class="site">
+  <div class="wrap bar">
+    <a class="logo" href="index.html">영상 프레임 추출기</a>
+    <nav><a href="index.html" class=on>프레임 추출</a><a href="guide.html">가이드</a><a href="about.html">소개</a><a href="contact.html">문의</a></nav>
   </div>
-  <div class="row"><span id="info"></span></div>
-  <div class="row" style="color:#888;font-size:13px">단축키: ←/→ 프레임 이동, S 저장, 스페이스 재생/정지</div>
-</div>
-<script>
-const $=id=>document.getElementById(id);
-const v=$('v'),seek=$('seek'),info=$('info'),t=$('t');
-let fps=30,name='video';
-const drop=$('drop'),file=$('file');
-drop.onclick=()=>file.click();
-file.onchange=()=>file.files[0]&&load(file.files[0]);
-drop.ondragover=e=>{e.preventDefault();drop.classList.add('over')};
-drop.ondragleave=()=>drop.classList.remove('over');
-drop.ondrop=e=>{e.preventDefault();drop.classList.remove('over');e.dataTransfer.files[0]&&load(e.dataTransfer.files[0])};
+</header>
+<main class="wrap">
 
-function load(f){
-  name=f.name.replace(/\.[^.]+$/,'');
-  v.src=URL.createObjectURL(f);
-  v.style.display='block';$('ctrl').style.display='block';
-  v.onloadedmetadata=()=>{seek.max=v.duration;estimateFps();update()};
-}
-// 실제 프레임레이트 추정 (재생 중 프레임 콜백 간격 측정)
-function estimateFps(){
-  if(!v.requestVideoFrameCallback)return;
-  const times=[];
-  const cb=(now,m)=>{
-    times.push(m.mediaTime);
-    if(times.length<12){v.requestVideoFrameCallback(cb)}
-    else{
-      v.pause();
-      const d=(times[times.length-1]-times[1])/(times.length-2);
-      if(d>0)fps=Math.round(1/d*100)/100;
-      v.currentTime=0;update();
-    }
-  };
-  v.requestVideoFrameCallback(cb);
-  v.play().catch(()=>{});
-}
-function update(){
-  seek.value=v.currentTime;t.value=v.currentTime.toFixed(2);
-  info.textContent=`${v.currentTime.toFixed(3)}s / ${v.duration.toFixed(2)}s · 프레임 ${Math.round(v.currentTime*fps)} · ${v.videoWidth}×${v.videoHeight} · 약 ${fps}fps`;
-}
-function step(n){v.pause();v.currentTime=Math.max(0,Math.min(v.duration,v.currentTime+n/fps))}
-v.ontimeupdate=update;v.onseeked=update;
-seek.oninput=()=>{v.pause();v.currentTime=+seek.value};
-$('back').onclick=()=>step(-1);
-$('fwd').onclick=()=>step(1);
-$('go').onclick=()=>{v.pause();v.currentTime=+t.value};
-function save(){
-  const c=document.createElement('canvas');
-  c.width=v.videoWidth;c.height=v.videoHeight;
-  c.getContext('2d').drawImage(v,0,0);
-  c.toBlob(b=>{
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(b);
-    a.download=`${name}_${v.currentTime.toFixed(2)}s.png`;
-    a.click();URL.revokeObjectURL(a.href);
-  },'image/png');
-}
-$('save').onclick=save;
-addEventListener('keydown',e=>{
-  if(e.target.tagName==='INPUT'&&e.target.type==='number')return;
-  if(!v.src)return;
-  if(e.key==='ArrowLeft'){e.preventDefault();step(-1)}
-  else if(e.key==='ArrowRight'){e.preventDefault();step(1)}
-  else if(e.key==='s'||e.key==='S')save();
-  else if(e.key===' '){e.preventDefault();v.paused?v.play():v.pause()}
-});
-</script>
+<h1>영상 프레임 → PNG 추출기</h1>
+<p class="lead">영상(MP4 등)을 불러와 원하는 장면을 고르고, 그 프레임을 원본 해상도 PNG 이미지로 바로 저장하세요. 설치도 회원가입도 필요 없습니다.</p>
+
+<section class="tool" id="tool">
+  <div id="drop">영상 파일을 여기에 끌어놓거나 클릭해서 선택하세요<input id="file" type="file" accept="video/*" hidden></div>
+  <video id="v" controls muted playsinline></video>
+  <div id="ctrl">
+    <input id="seek" type="range" min="0" value="0" step="any" aria-label="재생 위치">
+    <div class="row">
+      <button id="back">◀ 이전 프레임</button>
+      <button id="fwd">다음 프레임 ▶</button>
+      <label>이동(초) <input id="t" type="number" min="0" step="0.01"></label>
+      <button id="go">이동</button>
+      <button id="save" class="primary">현재 프레임 PNG 저장</button>
+    </div>
+    <div class="row"><span id="info"></span></div>
+    <div class="row hint">단축키: ←/→ 프레임 이동 · S 저장 · 스페이스 재생/정지</div>
+  </div>
+</section>
+
+<section>
+  <h2>사용 방법</h2>
+  <ol>
+    <li><strong>영상 불러오기</strong> – 위 상자에 영상 파일을 끌어놓거나 클릭해서 선택합니다. 컴퓨터에 저장된 MP4, WebM, MOV 등 브라우저가 재생할 수 있는 형식이면 됩니다.</li>
+    <li><strong>장면 찾기</strong> – 슬라이더를 움직여 대략적인 위치로 이동한 뒤, 「이전 프레임」「다음 프레임」 버튼이나 키보드 ←/→ 로 한 프레임씩 정확하게 맞춥니다. 초 단위 시간을 직접 입력해 이동할 수도 있습니다.</li>
+    <li><strong>PNG로 저장</strong> – 「현재 프레임 PNG 저장」 버튼 또는 S 키를 누르면 영상 원본 해상도 그대로의 PNG 파일이 내려받아집니다. 파일 이름은 <code>영상이름_12.34s.png</code>처럼 장면의 시간이 포함됩니다.</li>
+  </ol>
+  <p>Canva에서 만든 영상이라면 Canva에서 MP4로 먼저 다운로드한 뒤 이 도구에 불러오면 됩니다. 자세한 과정은 <a href="guide-canva-frame.html">캔바 영상에서 프레임을 이미지로 저장하는 방법</a> 글에서 단계별로 설명합니다.</p>
+</section>
+
+<section>
+  <h2>이런 분께 유용합니다</h2>
+  <ul>
+    <li>영상 속 한 장면을 <strong>유튜브 썸네일</strong>이나 블로그 대표 이미지로 쓰고 싶은 분</li>
+    <li>직접 촬영하거나 제작한 영상에서 <strong>고화질 정지 이미지</strong>를 뽑아 카드뉴스, 포스터, 발표 자료에 쓰려는 분</li>
+    <li>애니메이션·영상 작업 중 <strong>특정 프레임을 검수</strong>하거나 전후 비교용 스틸을 만들어야 하는 분</li>
+    <li>스크린샷으로 캡처하면 화질이 떨어지거나 재생 컨트롤이 함께 찍혀서 불편했던 분</li>
+  </ul>
+</section>
+
+<section>
+  <h2>이 도구의 특징</h2>
+  <ul>
+    <li><strong>원본 해상도 유지</strong> – 1920×1080 영상이면 1920×1080 PNG가 저장됩니다. 화면 캡처처럼 크기가 줄어들지 않습니다.</li>
+    <li><strong>무손실 PNG</strong> – 저장 과정에서 추가로 화질이 깎이지 않습니다. 영상 자체의 압축으로 인한 화질만 반영됩니다.</li>
+    <li><strong>업로드 없음</strong> – 영상은 서버로 전송되지 않고 내 브라우저 안에서만 처리됩니다. 개인 영상도 안심하고 사용할 수 있습니다.</li>
+    <li><strong>무료, 가입 불필요</strong> – 횟수 제한 없이 사용할 수 있습니다.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>자주 묻는 질문</h2>
+  <details><summary>어떤 영상 형식을 지원하나요?</summary>
+    <p>사용 중인 브라우저가 재생할 수 있는 형식이면 모두 가능합니다. 대부분의 브라우저에서 MP4(H.264), WebM을 지원하고, Safari에서는 MOV도 재생됩니다. 영상이 재생되지 않으면 MP4(H.264)로 변환한 뒤 다시 시도해 보세요.</p></details>
+  <details><summary>영상이 서버에 업로드되나요?</summary>
+    <p>아니요. 선택한 파일은 브라우저 안에서만 열리며 어떤 서버에도 전송되지 않습니다. 페이지를 닫으면 불러온 영상 정보도 사라집니다.</p></details>
+  <details><summary>저장된 이미지의 크기는 얼마인가요?</summary>
+    <p>영상의 실제 해상도와 같습니다. 화면에 작게 표시되더라도 저장되는 PNG는 원본 크기입니다. 해상도는 도구 아래의 정보 표시줄에서 확인할 수 있습니다.</p></details>
+  <details><summary>프레임 번호나 fps가 실제와 조금 다릅니다.</summary>
+    <p>브라우저는 영상의 정확한 프레임 정보를 직접 알려주지 않아서, 재생 중 프레임 간격을 측정해 fps를 추정합니다. 가변 프레임레이트(VFR) 영상에서는 오차가 생길 수 있습니다. 이 경우 슬라이더나 초 단위 입력으로 원하는 장면에 맞춰 주세요. 자세한 내용은 <a href="guide-fps-resolution.html">프레임, fps, 해상도 이해하기</a>를 참고하세요.</p></details>
+  <details><summary>JPG로도 저장할 수 있나요?</summary>
+    <p>현재는 PNG만 지원합니다. JPG가 필요하면 저장한 PNG를 이미지 편집 앱이나 변환 도구로 JPG로 바꾸면 됩니다.</p></details>
+  <details><summary>저작권이 있는 영상에서 프레임을 추출해도 되나요?</summary>
+    <p>본인이 제작했거나 사용 권한을 가진 영상에만 이용해 주세요. 타인의 영상에서 추출한 이미지를 허락 없이 게시·배포하면 저작권 문제가 생길 수 있습니다. 자세한 내용은 <a href="terms.html">이용약관</a>을 확인하세요.</p></details>
+</section>
+
+<section>
+  <h2>더 읽어보기</h2>
+  <ul>
+    <li><a href="guide-canva-frame.html">캔바 영상에서 프레임을 이미지로 저장하는 방법</a></li>
+    <li><a href="guide-thumbnail-frame.html">영상 썸네일로 쓸 좋은 프레임 고르는 법</a></li>
+    <li><a href="guide-fps-resolution.html">프레임, fps, 해상도 이해하기</a></li>
+  </ul>
+</section>
+
+</main>
+<footer class="site">
+  <div class="wrap">
+    <p><a href="about.html">소개</a> · <a href="contact.html">문의</a> · <a href="privacy.html">개인정보처리방침</a> · <a href="terms.html">이용약관</a></p>
+    <p class="small">© 2026 영상 프레임 추출기. 영상은 서버로 업로드되지 않고 사용자의 브라우저에서만 처리됩니다.</p>
+  </div>
+</footer>
+<script src="app.js"></script>
 </body>
 </html>
