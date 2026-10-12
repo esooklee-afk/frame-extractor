@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://esooklee-afk.github.io/frame-extractor/sitemap.xml
+Sitemap: https://durinori.kr/sitemap.xml
